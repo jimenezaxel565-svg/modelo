@@ -1,0 +1,2221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunicación Científica Digital</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Swiper JS ONLY — sin estilos (pero añadimos los mínimos necesarios en CSS) -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <style>
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #1a2a6c;
+            --primary-light: #2d4a9e;
+            --accent: #4a90d9;
+            --accent-light: #6db3f2;
+            --gold: #c9a84c;
+            --gold-light: #e0c76a;
+            --warm: #f0e6d3;
+            --gray-100: #f7f8fc;
+            --gray-200: #e8ecf4;
+            --gray-400: #a0aec0;
+            --gray-500: #8892a5;
+            --gray-700: #4a5568;
+            --gray-900: #1a202c;
+            --dark: #0d1117;
+            --white: #ffffff;
+            --success: #38a169;
+            --danger: #e53e3e;
+            --orange: #ed8936;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            color: var(--gray-900);
+            background: var(--dark);
+        }
+
+        /* ============================================
+           ESTILOS ESENCIALES PARA SWIPER (sin librería CSS)
+           ============================================ */
+        .swiper {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        .swiper-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        .swiper-slide {
+            flex-shrink: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ============================================
+           NAVEGACIÓN LATERAL FIJA
+           ============================================ */
+        .slide-nav {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .slide-nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.4);
+            background: transparent;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .slide-nav-dot.active {
+            background: var(--gold);
+            border-color: var(--gold);
+            transform: scale(1.3);
+        }
+
+        .slide-nav-dot:hover {
+            border-color: var(--gold);
+        }
+
+        .slide-nav-dot::after {
+            content: attr(data-label);
+            position: absolute;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.7);
+            opacity: 0;
+            transition: var(--transition);
+            pointer-events: none;
+        }
+
+        .slide-nav-dot:hover::after {
+            opacity: 1;
+            right: 28px;
+        }
+
+        /* Flechas de navegación */
+        .slide-arrows {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .slide-arrow {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .slide-arrow:hover {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--dark);
+            transform: scale(1.1);
+        }
+
+        .slide-arrow.disabled {
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        /* Contador de slides */
+        .slide-counter {
+            position: fixed;
+            bottom: 2.2rem;
+            right: 2.5rem;
+            z-index: 1000;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.1em;
+        }
+
+        .slide-counter .current {
+            font-size: 1.4rem;
+            color: var(--gold);
+        }
+
+        /* Barra de progreso */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--accent-light));
+            z-index: 1001;
+            transition: width 0.5s ease;
+        }
+
+        /* ============================================
+           ESTILOS COMUNES DE SLIDES
+           ============================================ */
+        .slide-inner {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .slide-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .slide-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+        }
+
+        .slide-subtitle {
+            font-size: 1rem;
+            font-weight: 300;
+            line-height: 1.7;
+            opacity: 0.7;
+        }
+
+        /* Animaciones de entrada por slide */
+        .slide-active .anim-up {
+            animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .slide-active .anim-up-d1 { animation-delay: 0.15s; }
+        .slide-active .anim-up-d2 { animation-delay: 0.3s; }
+        .slide-active .anim-up-d3 { animation-delay: 0.45s; }
+        .slide-active .anim-up-d4 { animation-delay: 0.6s; }
+        .slide-active .anim-up-d5 { animation-delay: 0.75s; }
+        .slide-active .anim-left {
+            animation: slideLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .slide-active .anim-left-d1 { animation-delay: 0.2s; }
+        .slide-active .anim-left-d2 { animation-delay: 0.4s; }
+        .slide-active .anim-scale {
+            animation: scaleIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .slide-active .anim-scale-d1 { animation-delay: 0.3s; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideLeft {
+            from { opacity: 0; transform: translateX(-40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* ============================================
+           SLIDE 1: HERO — Portada de Revista
+           ============================================ */
+        .slide-hero {
+            background: var(--dark);
+            position: relative;
+        }
+
+        .slide-hero .slide-inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .hero-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 4rem 4rem 4rem 6rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-magazine-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero-magazine-tag .issue {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+            background: rgba(201, 168, 76, 0.1);
+            padding: 0.3rem 0.8rem;
+            border-radius: 3px;
+        }
+
+        .hero-magazine-tag .date {
+            font-size: 0.7rem;
+            color: var(--gray-400);
+            font-weight: 400;
+        }
+
+        .hero-left .slide-label {
+            color: var(--accent-light);
+        }
+
+        .hero-left .slide-title {
+            font-size: clamp(2.5rem, 4.5vw, 4.5rem);
+            color: var(--white);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-left .slide-title em {
+            color: var(--gold);
+            font-style: italic;
+        }
+
+        .hero-left .slide-subtitle {
+            color: var(--gray-400);
+            max-width: 480px;
+            margin-bottom: 2.5rem;
+            font-size: 1.05rem;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.9rem 2rem;
+            background: var(--gold);
+            color: var(--dark);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 0;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .hero-cta:hover {
+            background: var(--gold-light);
+            transform: translateX(5px);
+        }
+
+        .hero-right {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero-visual {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-visual::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(74, 144, 217, 0.15), transparent 70%);
+            animation: heroPulse 6s ease-in-out infinite;
+        }
+
+        @keyframes heroPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+
+        .hero-icon-large {
+            font-size: 8rem;
+            color: rgba(255, 255, 255, 0.06);
+            position: absolute;
+            z-index: 0;
+        }
+
+        .hero-grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        .hero-floating-card {
+            position: absolute;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 1.2rem 1.5rem;
+            border-radius: 8px;
+            z-index: 2;
+        }
+
+        .hero-floating-card.top-right {
+            top: 15%;
+            right: 15%;
+        }
+
+        .hero-floating-card.bottom-left {
+            bottom: 20%;
+            left: 10%;
+        }
+
+        .hero-floating-card i {
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-floating-card span {
+            display: block;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+            font-weight: 500;
+        }
+
+        .hero-scroll-hint {
+            position: absolute;
+            bottom: 3rem;
+            left: 6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: rgba(255,255,255,0.3);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+
+        .hero-scroll-hint .line {
+            width: 40px;
+            height: 1px;
+            background: rgba(255,255,255,0.2);
+            animation: scrollLine 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollLine {
+            0%, 100% { width: 40px; }
+            50% { width: 60px; }
+        }
+
+        /* ============================================
+           SLIDE 2: EDITORIAL — Layout Revista
+           ============================================ */
+        .slide-editorial {
+            background: var(--white);
+        }
+
+        .slide-editorial .slide-inner {
+            display: grid;
+            grid-template-columns: 40% 60%;
+        }
+
+        .editorial-sidebar {
+            background: var(--primary);
+            padding: 4rem 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .editorial-sidebar::before {
+            content: 'EDITORIAL';
+            position: absolute;
+            font-family: 'Playfair Display', serif;
+            font-size: 10rem;
+            font-weight: 900;
+            color: rgba(255,255,255,0.03);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-90deg);
+            white-space: nowrap;
+        }
+
+        .editorial-sidebar .slide-label {
+            color: var(--gold);
+        }
+
+        .editorial-sidebar .slide-title {
+            font-size: 2.8rem;
+            color: var(--white);
+            margin-bottom: 1.5rem;
+        }
+
+        .editorial-sidebar .slide-title em {
+            color: var(--gold);
+            font-style: italic;
+        }
+
+        .editorial-sidebar .big-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--gold);
+            line-height: 1;
+            margin-top: auto;
+        }
+
+        .editorial-sidebar .big-number span {
+            font-size: 1rem;
+            color: var(--gray-400);
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+
+        .editorial-content {
+            padding: 4rem 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2.5rem;
+        }
+
+        .editorial-dropcap::first-letter {
+            font-family: 'Playfair Display', serif;
+            font-size: 4.5rem;
+            font-weight: 900;
+            float: left;
+            line-height: 0.8;
+            margin-right: 0.6rem;
+            margin-top: 0.2rem;
+            color: var(--primary);
+        }
+
+        .editorial-text p {
+            font-size: 1rem;
+            line-height: 1.85;
+            color: var(--gray-700);
+            margin-bottom: 1rem;
+        }
+
+        .editorial-quote {
+            border-left: 3px solid var(--gold);
+            padding: 1rem 1.5rem;
+            margin: 0.5rem 0;
+            background: var(--gray-100);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .editorial-quote p {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-style: italic;
+            color: var(--primary);
+            line-height: 1.6;
+        }
+
+        .editorial-stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .mini-stat {
+            text-align: center;
+            padding: 1.2rem 0.5rem;
+            border-radius: 8px;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            transition: var(--transition);
+        }
+
+        .mini-stat:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(26, 42, 108, 0.1);
+            border-color: var(--accent);
+        }
+
+        .mini-stat i {
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .mini-stat .num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: block;
+        }
+
+        .mini-stat .label {
+            font-size: 0.65rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        /* ============================================
+           SLIDE 3: ÍNDICE — Grid Magazine
+           ============================================ */
+        .slide-index {
+            background: var(--gray-100);
+        }
+
+        .slide-index .slide-inner {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .index-header {
+            padding: 3rem 4rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .index-header .slide-label {
+            color: var(--accent);
+        }
+
+        .index-header .slide-title {
+            font-size: 3rem;
+            color: var(--primary);
+        }
+
+        .index-header .slide-title em { color: var(--gold); font-style: italic; }
+
+        .index-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--gray-200);
+            line-height: 1;
+        }
+
+        .index-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 1.2rem;
+            padding: 0 4rem 3rem;
+            flex: 1;
+        }
+
+        .index-item {
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .index-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            transition: var(--transition);
+        }
+
+        .index-item:nth-child(1)::after { background: var(--primary); }
+        .index-item:nth-child(2)::after { background: var(--orange); }
+        .index-item:nth-child(3)::after { background: var(--accent); }
+        .index-item:nth-child(4)::after { background: var(--success); }
+        .index-item:nth-child(5)::after { background: var(--gold); }
+        .index-item:nth-child(6)::after { background: var(--danger); }
+
+        .index-item:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 40px rgba(26, 42, 108, 0.12);
+            border-color: transparent;
+        }
+
+        .index-item:hover::after {
+            height: 100%;
+            opacity: 0.04;
+        }
+
+        .index-item-top {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .index-item-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .index-item i.main-icon {
+            font-size: 1.8rem;
+            color: var(--accent);
+        }
+
+        .index-item h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.3rem;
+        }
+
+        .index-item p {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            line-height: 1.5;
+        }
+
+        .index-item .arrow {
+            align-self: flex-end;
+            font-size: 1rem;
+            color: var(--gray-400);
+            transition: var(--transition);
+        }
+
+        .index-item:hover .arrow {
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        /* ============================================
+           SLIDE 4: EL PROBLEMA — Mapa Mental
+           ============================================ */
+        .slide-problem {
+            background: linear-gradient(135deg, #fef9f0, #fff7ed);
+        }
+
+        .slide-problem .slide-inner {
+            display: grid;
+            grid-template-columns: 35% 65%;
+        }
+
+        .problem-sidebar {
+            padding: 4rem 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid #fed7aa;
+        }
+
+        .problem-sidebar .slide-label {
+            color: var(--orange);
+        }
+
+        .problem-sidebar .slide-title {
+            font-size: 2.5rem;
+            color: #c05621;
+            margin-bottom: 1rem;
+        }
+
+        .problem-sidebar .slide-title em {
+            color: var(--orange);
+            font-style: italic;
+        }
+
+        .problem-sidebar p {
+            font-size: 0.95rem;
+            color: var(--gray-700);
+            line-height: 1.7;
+        }
+
+        .mindmap-area {
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .mindmap {
+            position: relative;
+            width: 100%;
+            max-width: 550px;
+        }
+
+        .mindmap-center {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--orange), #dd6b20);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 8px 40px rgba(237, 137, 54, 0.3);
+        }
+
+        .mindmap-center i {
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .mindmap-center span {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .mindmap-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px dashed rgba(237, 137, 54, 0.2);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .mindmap-ring.r1 { width: 280px; height: 280px; }
+        .mindmap-ring.r2 { width: 420px; height: 420px; }
+
+        .mindmap-node {
+            position: absolute;
+            background: white;
+            border: 2px solid #fed7aa;
+            border-radius: 12px;
+            padding: 0.8rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            box-shadow: 0 4px 15px rgba(237, 137, 54, 0.1);
+            transition: var(--transition);
+            z-index: 3;
+            white-space: nowrap;
+        }
+
+        .mindmap-node:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 25px rgba(237, 137, 54, 0.2);
+            border-color: var(--orange);
+        }
+
+        .mindmap-node i {
+            color: var(--orange);
+            font-size: 0.9rem;
+        }
+
+        .mindmap-node.n1 { top: 2%; left: 50%; transform: translateX(-50%); }
+        .mindmap-node.n2 { top: 25%; right: 0; }
+        .mindmap-node.n3 { bottom: 25%; right: 0; }
+        .mindmap-node.n4 { bottom: 2%; left: 50%; transform: translateX(-50%); }
+        .mindmap-node.n5 { bottom: 25%; left: 0; }
+        .mindmap-node.n6 { top: 25%; left: 0; }
+
+        /* ============================================
+           SLIDE 5: MARCO TEÓRICO — Acordeón
+           ============================================ */
+        .slide-theory {
+            background: linear-gradient(135deg, #f0f7ff, #ebf4ff);
+        }
+
+        .slide-theory .slide-inner {
+            display: grid;
+            grid-template-columns: 35% 65%;
+        }
+
+        .theory-sidebar {
+            padding: 4rem 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid #bee3f8;
+        }
+
+        .theory-sidebar .slide-label {
+            color: var(--accent);
+        }
+
+        .theory-sidebar .slide-title {
+            font-size: 2.5rem;
+            color: #2b6cb0;
+            margin-bottom: 1rem;
+        }
+
+        .theory-sidebar .slide-title em {
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        .theory-sidebar p {
+            font-size: 0.95rem;
+            color: var(--gray-700);
+            line-height: 1.7;
+        }
+
+        .theory-content {
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .accordion-v2 {
+            width: 100%;
+            max-width: 550px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .acc-item {
+            background: white;
+            border: 1px solid #bee3f8;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .acc-item:hover {
+            border-color: var(--accent);
+        }
+
+        .acc-item.open {
+            box-shadow: 0 6px 25px rgba(74, 144, 217, 0.12);
+            border-color: var(--accent);
+        }
+
+        .acc-header {
+            padding: 1.2rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--gray-700);
+            transition: var(--transition);
+            user-select: none;
+        }
+
+        .acc-header:hover { color: var(--accent); }
+
+        .acc-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .acc-header-left i {
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        .acc-chevron {
+            transition: var(--transition);
+            font-size: 0.8rem;
+            color: var(--gray-400);
+        }
+
+        .acc-item.open .acc-chevron {
+            transform: rotate(180deg);
+            color: var(--accent);
+        }
+
+        .acc-item.open .acc-header {
+            background: var(--accent);
+            color: white;
+        }
+
+        .acc-item.open .acc-header i {
+            color: white;
+        }
+
+        .acc-item.open .acc-chevron {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .acc-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .acc-body-inner {
+            padding: 1.2rem 1.5rem;
+            font-size: 0.85rem;
+            color: var(--gray-700);
+            line-height: 1.7;
+            border-top: 1px solid #bee3f8;
+        }
+
+        /* ============================================
+           SLIDE 6: METODOLOGÍA — Flujo Visual
+           ============================================ */
+        .slide-method {
+            background: linear-gradient(135deg, #f0fff4, #ebfff0);
+        }
+
+        .slide-method .slide-inner {
+            display: grid;
+            grid-template-columns: 35% 65%;
+        }
+
+        .method-sidebar {
+            padding: 4rem 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid #c6f6d5;
+        }
+
+        .method-sidebar .slide-label {
+            color: var(--success);
+        }
+
+        .method-sidebar .slide-title {
+            font-size: 2.5rem;
+            color: #276749;
+            margin-bottom: 1rem;
+        }
+
+        .method-sidebar .slide-title em {
+            color: var(--success);
+            font-style: italic;
+        }
+
+        .method-sidebar p {
+            font-size: 0.95rem;
+            color: var(--gray-700);
+            line-height: 1.7;
+        }
+
+        .method-content {
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .flow-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            width: 100%;
+            max-width: 550px;
+        }
+
+        .flow-node {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1rem 0;
+            position: relative;
+            align-items: flex-start;
+        }
+
+        .flow-node-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+            transition: var(--transition);
+        }
+
+        .flow-node:hover .flow-node-circle {
+            background: var(--success);
+        }
+
+        .flow-node:hover .flow-node-circle i {
+            color: white;
+        }
+
+        .flow-node-circle i {
+            color: var(--success);
+            font-size: 1.1rem;
+            transition: var(--transition);
+        }
+
+        .flow-node:not(:last-child) .flow-node-circle::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 30px;
+            background: linear-gradient(180deg, var(--success), rgba(56, 161, 105, 0.2));
+        }
+
+        .flow-node-content {
+            padding-top: 0.3rem;
+        }
+
+        .flow-node-content h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.2rem;
+        }
+
+        .flow-node-content p {
+            font-size: 0.82rem;
+            color: var(--gray-500);
+            line-height: 1.5;
+        }
+
+        .flow-connector {
+            text-align: center;
+            padding: 0.1rem 0 0.1rem 25px;
+            color: var(--success);
+            font-size: 0.8rem;
+        }
+
+        /* ============================================
+           SLIDE 7: QR — Centro Interactivo
+           ============================================ */
+        .slide-qr {
+            background: linear-gradient(160deg, var(--dark), #0a1a2f, var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide-qr .slide-inner {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-layout {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+        }
+
+        .qr-layout .slide-label {
+            color: var(--accent-light);
+            justify-content: center;
+        }
+
+        .qr-layout .slide-title {
+            font-size: 2.8rem;
+            color: var(--white);
+            margin-bottom: 1rem;
+        }
+
+        .qr-layout .slide-title em {
+            color: var(--gold);
+            font-style: italic;
+        }
+
+        .qr-layout .slide-subtitle {
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 2.5rem;
+        }
+
+        .qr-card {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .qr-placeholder-lg {
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed rgba(255,255,255,0.15);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 0 auto;
+        }
+
+        .qr-placeholder-lg i {
+            font-size: 4rem;
+            color: var(--gold);
+        }
+
+        .qr-placeholder-lg span {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+            font-weight: 500;
+        }
+
+        .qr-tags {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .qr-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.6);
+            font-weight: 500;
+        }
+
+        .qr-tag i {
+            color: var(--gold);
+        }
+
+        /* ============================================
+           SLIDE 8: TIPS — Dos & Don'ts
+           ============================================ */
+        .slide-tips {
+            background: var(--white);
+        }
+
+        .slide-tips .slide-inner {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .tips-header {
+            padding: 2.5rem 4rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .tips-header .slide-label { color: var(--accent); }
+
+        .tips-header .slide-title {
+            font-size: 2.5rem;
+            color: var(--primary);
+        }
+
+        .tips-header .slide-title em { color: var(--gold); font-style: italic; }
+
+        .tips-grid-v2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            padding: 1rem 4rem 3rem;
+            flex: 1;
+        }
+
+        .tips-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .tips-col-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 0.3rem;
+        }
+
+        .tips-col.do .tips-col-header { color: var(--success); }
+        .tips-col.dont .tips-col-header { color: var(--danger); }
+
+        .tip-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.2rem 1.5rem;
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        .tips-col.do .tip-card {
+            background: #f0fff4;
+            border: 1px solid #c6f6d5;
+        }
+
+        .tips-col.do .tip-card:hover {
+            border-color: var(--success);
+            transform: translateX(5px);
+        }
+
+        .tips-col.dont .tip-card {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+        }
+
+        .tips-col.dont .tip-card:hover {
+            border-color: var(--danger);
+            transform: translateX(5px);
+        }
+
+        .tip-card i.tip-icon {
+            font-size: 1.2rem;
+            margin-top: 0.15rem;
+            flex-shrink: 0;
+        }
+
+        .tips-col.do .tip-card i { color: var(--success); }
+        .tips-col.dont .tip-card i { color: var(--danger); }
+
+        .tip-card strong {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.15rem;
+        }
+
+        .tip-card span {
+            font-size: 0.78rem;
+            color: var(--gray-500);
+            line-height: 1.5;
+        }
+
+        /* ============================================
+           SLIDE 9: FOOTER — Cierre Editorial
+           ============================================ */
+        .slide-footer {
+            background: var(--dark);
+        }
+
+        .slide-footer .slide-inner {
+            display: grid;
+            grid-template-columns: 1fr;
+            align-items: center;
+            justify-items: center;
+        }
+
+        .footer-layout {
+            text-align: center;
+            max-width: 700px;
+            padding: 2rem;
+        }
+
+        .footer-big-quote {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            font-style: italic;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.5;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .footer-big-quote::before {
+            content: '\201C';
+            font-size: 6rem;
+            color: var(--gold);
+            position: absolute;
+            top: -2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Playfair Display', serif;
+            opacity: 0.5;
+        }
+
+        .footer-author {
+            font-size: 0.85rem;
+            color: var(--gold);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 3rem;
+        }
+
+        .footer-social-row {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.6);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .footer-social-btn:hover {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--dark);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(201, 168, 76, 0.3);
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand i {
+            font-size: 1.5rem;
+            color: var(--gold);
+        }
+
+        .footer-brand span {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--white);
+        }
+
+        .footer-copy {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.3);
+            font-weight: 400;
+        }
+
+        .footer-copy i.fa-heart {
+            color: var(--danger);
+            font-size: 0.7rem;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 900px) {
+            .slide-hero .slide-inner,
+            .slide-editorial .slide-inner,
+            .slide-problem .slide-inner,
+            .slide-theory .slide-inner,
+            .slide-method .slide-inner {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-left { padding: 6rem 2rem 2rem; }
+            .hero-right { display: none; }
+            .hero-scroll-hint { left: 2rem; }
+
+            .editorial-sidebar {
+                padding: 3rem 2rem;
+            }
+            .editorial-content { padding: 2rem; }
+            .editorial-stats-row { grid-template-columns: repeat(2, 1fr); }
+
+            .index-grid {
+                grid-template-columns: 1fr 1fr;
+                padding: 0 2rem 2rem;
+                grid-template-rows: auto;
+            }
+            .index-header { padding: 3rem 2rem 1rem; }
+            .index-number { display: none; }
+
+            .problem-sidebar,
+            .theory-sidebar,
+            .method-sidebar {
+                padding: 3rem 2rem;
+                border-right: none;
+                border-bottom: 1px solid rgba(0,0,0,0.1);
+            }
+            .mindmap-area,
+            .theory-content,
+            .method-content { padding: 2rem; }
+
+            .mindmap { transform: scale(0.7); transform-origin: center; }
+
+            .tips-header { padding: 2rem 2rem 1rem; }
+            .tips-grid-v2 {
+                grid-template-columns: 1fr;
+                padding: 1rem 2rem 2rem;
+            }
+
+            .qr-card { padding: 2rem; }
+            .qr-placeholder-lg { width: 150px; height: 150px; }
+
+            .slide-nav { right: 1rem; }
+            .slide-nav-dot::after { display: none; }
+            .slide-counter { right: 1.5rem; }
+            .slide-arrows { bottom: 1.5rem; }
+            .slide-arrow { width: 44px; height: 44px; }
+        }
+
+        @media (max-width: 600px) {
+            .hero-left .slide-title { font-size: 2rem; }
+            .editorial-sidebar .slide-title { font-size: 2rem; }
+            .editorial-sidebar .big-number { font-size: 3rem; }
+            .index-grid { grid-template-columns: 1fr; }
+            .tips-grid-v2 { grid-template-columns: 1fr; }
+            .mindmap { transform: scale(0.55); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Barra de progreso -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Navegación lateral -->
+    <div class="slide-nav" id="slideNav">
+        <div class="slide-nav-dot active" data-index="0" data-label="Portada"></div>
+        <div class="slide-nav-dot" data-index="1" data-label="Editorial"></div>
+        <div class="slide-nav-dot" data-index="2" data-label="Índice"></div>
+        <div class="slide-nav-dot" data-index="3" data-label="Problema"></div>
+        <div class="slide-nav-dot" data-index="4" data-label="Teoría"></div>
+        <div class="slide-nav-dot" data-index="5" data-label="Método"></div>
+        <div class="slide-nav-dot" data-index="6" data-label="QR"></div>
+        <div class="slide-nav-dot" data-index="7" data-label="Tips"></div>
+        <div class="slide-nav-dot" data-index="8" data-label="Cierre"></div>
+    </div>
+
+    <!-- Flechas -->
+    <div class="slide-arrows">
+        <button class="slide-arrow" id="prevBtn"><i class="fas fa-arrow-left"></i></button>
+        <button class="slide-arrow" id="nextBtn"><i class="fas fa-arrow-right"></i></button>
+    </div>
+
+    <!-- Contador -->
+    <div class="slide-counter">
+        <span class="current" id="counterCurrent">01</span>
+        <span> / </span>
+        <span id="counterTotal">09</span>
+    </div>
+
+    <!-- ==========================================
+         SWIPER — CARRUSEL
+         ========================================== -->
+    <div class="swiper" id="mainSwiper">
+        <div class="swiper-wrapper">
+
+            <!-- ==================== SLIDE 1: HERO ==================== -->
+            <div class="swiper-slide slide-hero">
+                <div class="slide-inner">
+                    <div class="hero-left">
+                        <div class="hero-magazine-tag anim-up">
+                            <span class="issue">Vol. 2025 — Nº 01</span>
+                            <span class="date">Metodología de la Investigación</span>
+                        </div>
+                        <div class="slide-label anim-up anim-up-d1">
+                            <i class="fas fa-graduation-cap"></i>
+                            Edición Especial
+                        </div>
+                        <h1 class="slide-title anim-up anim-up-d2">
+                            Comunicación<br>Científica<br><em>Digital</em>
+                        </h1>
+                        <p class="slide-subtitle anim-up anim-up-d3">
+                            Herramientas, estrategias y metodologías para transformar el conocimiento científico en contenido accesible, riguroso y visualmente impactante.
+                        </p>
+                        <button class="hero-cta anim-up anim-up-d4" id="startBtn">
+                            Explorar Edición
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <div class="hero-scroll-hint anim-up anim-up-d5">
+                            <span class="line"></span>
+                            Desliza para continuar
+                        </div>
+                    </div>
+                    <div class="hero-right">
+                        <div class="hero-visual anim-scale">
+                            <i class="fas fa-microscope hero-icon-large"></i>
+                            <div class="hero-grid-overlay"></div>
+                            <div class="hero-floating-card top-right">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Datos Abiertos</span>
+                            </div>
+                            <div class="hero-floating-card bottom-left">
+                                <i class="fas fa-share-nodes"></i>
+                                <span>Acceso Libre</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== SLIDE 2: EDITORIAL ==================== -->
+            <div class="swiper-slide slide-editorial">
+                <div class="slide-inner">
+                    <div class="editorial-sidebar">
+                        <div class="slide-label anim-up">
+                            <i class="fas fa-newspaper"></i>
+                            Editorial
+                        </div>
+                        <h2 class="slide-title anim-up anim-up-d1">
+                            La ciencia que no se comunica <em>no existe</em>
+                        </h2>
+                        <div class="big-number anim-up anim-up-d2">
+                            2.5M<span> artículos publicados al año en el mundo</span>
+                        </div>
+                    </div>
+                    <div class="editorial-content">
+                        <div class="editorial-text anim-left anim-left-d1">
+                            <p class="editorial-dropcap">En la era digital, los investigadores tienen la responsabilidad y la oportunidad de traducir hallazgos complejos en narrativas accesibles que impacten positivamente en la sociedad.</p>
+                            <p>La comunicación científica digital no es solo compartir resultados; es construir puentes entre la academia y el público general, utilizando herramientas visuales, plataformas interactivas y lenguajes multimedia.</p>
+                        </div>
+                        <div class="editorial-quote anim-left anim-left-d2">
+                            <p>"El conocimiento no compartido es conocimiento perdido."</p>
+                        </div>
+                        <div class="editorial-stats-row anim-left anim-left-d3">
+                            <div class="mini-stat">
+                                <i class="fas fa-globe"></i>
+                                <span class="num">73%</span>
+                                <span class="label">Acceso Digital</span>
+                            </div>
+                            <div class="mini-stat">
+                                <i class="fas fa-users"></i>
+                                <span class="num">4.9B</span>
+                                <span class="label">Usuarios Online</span>
+                            </div>
+                            <div class="mini-stat">
+                                <i class="fas fa-chart-line"></i>
+                                <span class="num">+180%</span>
+                                <span class="label">Crecimiento</span>
+                            </div>
+                            <div class="mini-stat">
+                                <i class="fas fa-flask"></i>
+                                <span class="num">89%</span>
+                                <span class="label">Open Access</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== SLIDE 3: ÍNDICE ==================== -->
+            <div class="swiper-slide slide-index">
+                <div class="slide-inner" style="flex-direction:column;">
+                    <div class="index-header">
+                        <div>
+                            <div class="slide-label anim-up">
+                                <i class="fas fa-list-ul"></i>
+                                Contenido
+                            </div>
+                            <h2 class="slide-title anim-up anim-up-d1">
+                                Índice de la <em>Edición</em>
+                            </h2>
+                        </div>
+                        <div class="index-number anim-scale">03</div>
+                    </div>
+                    <div class="index-grid">
+                        <div class="index-item anim-up" data-slide="1">
+                            <div>
+                                <div class="index-item-top">
+                                    <div class="index-item-number">01</div>
+                                    <i class="fas fa-newspaper main-icon"></i>
+                                </div>
+                                <h4>Editorial</h4>
+                                <p>La importancia de la divulgación científica en la era digital</p>
+                            </div>
+                            <i class="fas fa-arrow-right arrow"></i>
+                        </div>
+                        <div class="index-item anim-up anim-up-d1" data-slide="3">
+                            <div>
+                                <div class="index-item-top">
+                                    <div class="index-item-number">02</div>
+                                    <i class="fas fa-brain main-icon"></i>
+                                </div>
+                                <h4>El Problema</h4>
+                                <p>Mapa mental conceptual del planteamiento de investigación</p>
+                            </div>
+                            <i class="fas fa-arrow-right arrow"></i>
+                        </div>
+                        <div class="index-item anim-up anim-up-d2" data-slide="4">
+                            <div>
+                                <div class="index-item-top">
+                                    <div class="index-item-number">03</div>
+                                    <i class="fas fa-book-open main-icon"></i>
+                                </div>
+                                <h4>Marco Teórico</h4>
+                                <p>Esquema de conocimiento y fundamentos conceptuales</p>
+                            </div>
+                            <i class="fas fa-arrow-right arrow"></i>
+                        </div>
+                        <div class="index-item anim-up anim-up-d1" data-slide="5">
+                            <div>
+                                <div class="index-item-top">
+                                    <div class="index-item-number">04</div>
+                                    <i class="fas fa-project-diagram main-icon"></i>
+                                </div>
+                                <h4>Metodología</h4>
+                                <p>Flujo visual del proceso de investigación paso a paso</p>
+                            </div>
+                            <i class="fas fa-arrow-right arrow"></i>
+                        </div>
+                        <div class="index-item anim-up anim-up-d2" data-slide="6">
+                            <div>
+                                <div class="index-item-top">
+                                    <div class="index-item-number">05</div>
+                                    <i class="fas fa-qrcode main-icon"></i>
+                                </div>
+                                <h4>Interactividad</h4>
+                                <p>Recursos digitales, datasets y materiales complementarios</p>
+                            </div>
+                            <i class="fas fa-arrow-right arrow"></i>
+                        </div>
+                        <div class="index-item anim-up anim-up-d3" data-slide="7">
+                            <div>
+                                <div class="index-item-top">
+                                    <div class="index-item-number">06</div>
+                                    <i class="fas fa-palette main-icon"></i>
+                                </div>
+                                <h4>Tips de Diseño</h4>
+                                <p>Do's & Don'ts para presentaciones científicas efectivas</p>
+                            </div>
+                            <i class="fas fa-arrow-right arrow"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== SLIDE 4: EL PROBLEMA ==================== -->
+            <div class="swiper-slide slide-problem">
+                <div class="slide-inner">
+                    <div class="problem-sidebar">
+                        <div class="slide-label anim-up">
+                            <i class="fas fa-brain"></i>
+                            Sección 02
+                        </div>
+                        <h2 class="slide-title anim-up anim-up-d1">
+                            El <em>Problema</em> de Investigación
+                        </h2>
+                        <p class="anim-up anim-up-d2">Todo proyecto de investigación nace de una pregunta. Identificar y delimitar el problema es el primer paso hacia la generación de conocimiento significativo.</p>
+                    </div>
+                    <div class="mindmap-area">
+                        <div class="mindmap anim-scale">
+                            <div class="mindmap-ring r1"></div>
+                            <div class="mindmap-ring r2"></div>
+                            <div class="mindmap-center">
+                                <i class="fas fa-question-circle"></i>
+                                <span>Problema</span>
+                            </div>
+                            <div class="mindmap-node n1 anim-up"><i class="fas fa-circle"></i> ¿Qué investigar?</div>
+                            <div class="mindmap-node n2 anim-up anim-up-d1"><i class="fas fa-circle"></i> ¿Por qué es relevante?</div>
+                            <div class="mindmap-node n3 anim-up anim-up-d2"><i class="fas fa-circle"></i> ¿A quién beneficia?</div>
+                            <div class="mindmap-node n4 anim-up anim-up-d3"><i class="fas fa-circle"></i> ¿Qué gap existe?</div>
+                            <div class="mindmap-node n5 anim-up anim-up-d4"><i class="fas fa-circle"></i> Objetivos específicos</div>
+                            <div class="mindmap-node n6 anim-up anim-up-d5"><i class="fas fa-circle"></i> Justificación</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== SLIDE 5: MARCO TEÓRICO ==================== -->
+            <div class="swiper-slide slide-theory">
+                <div class="slide-inner">
+                    <div class="theory-sidebar">
+                        <div class="slide-label anim-up">
+                            <i class="fas fa-book-open"></i>
+                            Sección 03
+                        </div>
+                        <h2 class="slide-title anim-up anim-up-d1">
+                            Marco <em>Teórico</em>
+                        </h2>
+                        <p class="anim-up anim-up-d2">El sustento conceptual que da validez, contexto y profundidad a toda investigación científica rigurosa y replicable.</p>
+                    </div>
+                    <div class="theory-content">
+                        <div class="accordion-v2">
+                            <div class="acc-item anim-up">
+                                <div class="acc-header">
+                                    <div class="acc-header-left">
+                                        <i class="fas fa-landmark"></i>
+                                        <span>Antecedentes</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down acc-chevron"></i>
+                                </div>
+                                <div class="acc-body">
+                                    <div class="acc-body-inner">
+                                        Revisión sistemática de investigaciones previas relacionadas con el tema. Identificación de patrones, tendencias emergentes y vacíos significativos en la literatura científica existente.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="acc-item anim-up anim-up-d1">
+                                <div class="acc-header">
+                                    <div class="acc-header-left">
+                                        <i class="fas fa-cubes"></i>
+                                        <span>Bases Teóricas</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down acc-chevron"></i>
+                                </div>
+                                <div class="acc-body">
+                                    <div class="acc-body-inner">
+                                        Teorías, modelos conceptuales y frameworks fundamentales que sustentan el marco teórico. Autores clave, corrientes de pensamiento y sus aportes al campo de estudio.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="acc-item anim-up anim-up-d2">
+                                <div class="acc-header">
+                                    <div class="acc-header-left">
+                                        <i class="fas fa-gavel"></i>
+                                        <span>Marco Legal</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down acc-chevron"></i>
+                                </div>
+                                <div class="acc-body">
+                                    <div class="acc-body-inner">
+                                        Normativas, regulaciones y políticas que enmarcan la investigación. Aspectos éticos, bioéticos y legales que deben considerarse en el diseño del estudio propuesto.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="acc-item anim-up anim-up-d3">
+                                <div class="acc-header">
+                                    <div class="acc-header-left">
+                                        <i class="fas fa-book"></i>
+                                        <span>Definiciones Clave</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down acc-chevron"></i>
+                                </div>
+                                <div class="acc-body">
+                                    <div class="acc-body-inner">
+                                        Glosario de términos técnicos y definiciones operacionales. Clarificación conceptual precisa para evitar ambigüedades y asegurar la replicabilidad del estudio.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== SLIDE 6: METODOLOGÍA ==================== -->
+            <div class="swiper-slide slide-method">
+                <div class="slide-inner">
+                    <div class="method-sidebar">
+                        <div class="slide-label anim-up">
+                            <i class="fas fa-project-diagram"></i>
+                            Sección 04
+                        </div>
+                        <h2 class="slide-title anim-up anim-up-d1">
+                            <em>Metodología</em> del Proceso
+                        </h2>
+                        <p class="anim-up anim-up-d2">El camino estructurado que transforma una pregunta de investigación en conocimiento verificable, replicable y comunicable.</p>
+                    </div>
+                    <div class="method-content">
+                        <div class="flow-timeline">
+                            <div class="flow-node anim-up">
+                                <div class="flow-node-circle"><i class="fas fa-bullseye"></i></div>
+                                <div class="flow-node-content">
+                                    <h4>1. Planteamiento</h4>
+                                    <p>Definición del problema, objetivos y preguntas de investigación.</p>
+                                </div>
+                            </div>
+                            <div class="flow-connector"><i class="fas fa-arrow-down"></i></div>
+                            <div class="flow-node anim-up anim-up-d1">
+                                <div class="flow-node-circle"><i class="fas fa-drafting-compass"></i></div>
+                                <div class="flow-node-content">
+                                    <h4>2. Diseño Metodológico</h4>
+                                    <p>Selección del enfoque: cualitativo, cuantitativo o mixto.</p>
+                                </div>
+                            </div>
+                            <div class="flow-connector"><i class="fas fa-arrow-down"></i></div>
+                            <div class="flow-node anim-up anim-up-d2">
+                                <div class="flow-node-circle"><i class="fas fa-database"></i></div>
+                                <div class="flow-node-content">
+                                    <h4>3. Recolección de Datos</h4>
+                                    <p>Instrumentos, técnicas de muestreo y protocolos de campo.</p>
+                                </div>
+                            </div>
+                            <div class="flow-connector"><i class="fas fa-arrow-down"></i></div>
+                            <div class="flow-node anim-up anim-up-d3">
+                                <div class="flow-node-circle"><i class="fas fa-chart-pie"></i></div>
+                                <div class="flow-node-content">
+                                    <h4>4. Análisis de Resultados</h4>
+                                    <p>Procesamiento estadístico e interpretación de hallazgos.</p>
+                                </div>
+                            </div>
+                            <div class="flow-connector"><i class="fas fa-arrow-down"></i></div>
+                            <div class="flow-node anim-up anim-up-d4">
+                                <div class="flow-node-circle"><i class="fas fa-broadcast-tower"></i></div>
+                                <div class="flow-node-content">
+                                    <h4>5. Comunicación Digital</h4>
+                                    <p>Difusión de resultados mediante formatos multimedia accesibles.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== SLIDE 7: QR ==================== -->
+            <div class="swiper-slide slide-qr">
+                <div class="slide-inner">
+                    <div class="qr-layout">
+                        <div class="slide-label anim-up">
+                            <i class="fas fa-qrcode"></i>
+                            Recursos Digitales
+                        </div>
+                        <h2 class="slide-title anim-up anim-up-d1">
+                            Escanea para <em>Explorar</em>
+                        </h2>
+                        <p class="slide-subtitle anim-up anim-up-d2">
+                            Accede a datasets abiertos, artículos completos, videos explicativos y código fuente de esta investigación.
+                        </p>
+                        <div class="qr-card anim-scale anim-scale-d1">
+                            <div class="qr-placeholder-lg">
+                                <i class="fas fa-qrcode"></i>
+                                <span>Escanea aquí</span>
+                            </div>
+                        </div>
+                        <div class="qr-tags anim-up anim-up-d3">
+                            <div class="qr-tag"><i class="fas fa-database"></i> Datasets</div>
+                            <div class="qr-tag"><i class="fas fa-file-pdf"></i> PDFs</div>
+                            <div class="qr-tag"><i class="fas fa-video"></i> Videos</div>
+                            <div class="qr-tag"><i class="fas fa-code"></i> Código</div>
+                            <div class="qr-tag"><i class="fas fa-chalkboard-teacher"></i> Tutoriales</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== SLIDE 8: TIPS ==================== -->
+            <div class="swiper-slide slide-tips">
+                <div class="slide-inner" style="flex-direction:column;">
+                    <div class="tips-header">
+                        <div>
+                            <div class="slide-label anim-up">
+                                <i class="fas fa-lightbulb"></i>
+                                Guía Rápida
+                            </div>
+                            <h2 class="slide-title anim-up anim-up-d1">
+                                Tips de Diseño <em>Científico</em>
+                            </h2>
+                        </div>
+                    </div>
+                    <div class="tips-grid-v2">
+                        <div class="tips-col do">
+                            <div class="tips-col-header anim-up">
+                                <i class="fas fa-check-circle"></i>
+                                Lo que SÍ hacer
+                            </div>
+                            <div class="tip-card anim-up anim-up-d1">
+                                <i class="fas fa-check-circle tip-icon"></i>
+                                <div>
+                                    <strong>Menos es más</strong>
+                                    <span>Una idea principal por slide. Texto mínimo y relevante.</span>
+                                </div>
+                            </div>
+                            <div class="tip-card anim-up anim-up-d2">
+                                <i class="fas fa-check-circle tip-icon"></i>
+                                <div>
+                                    <strong>Usa recursos visuales</strong>
+                                    <span>Gráficos e infografías comunican más que mil palabras.</span>
+                                </div>
+                            </div>
+                            <div class="tip-card anim-up anim-up-d3">
+                                <i class="fas fa-check-circle tip-icon"></i>
+                                <div>
+                                    <strong>Coherencia visual</strong>
+                                    <span>Paleta uniforme, tipografía consistente, jerarquía clara.</span>
+                                </div>
+                            </div>
+                            <div class="tip-card anim-up anim-up-d4">
+                                <i class="fas fa-check-circle tip-icon"></i>
+                                <div>
+                                    <strong>Cita tus fuentes</strong>
+                                    <span>Siempre referencia la bibliografía con transparencia.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tips-col dont">
+                            <div class="tips-col-header anim-up anim-up-d1">
+                                <i class="fas fa-times-circle"></i>
+                                Lo que NO hacer
+                            </div>
+                            <div class="tip-card anim-up anim-up-d1">
+                                <i class="fas fa-times-circle tip-icon"></i>
+                                <div>
+                                    <strong>Sobrecargar de texto</strong>
+                                    <span>Las slides no son documentos. Evita párrafos extensos.</span>
+                                </div>
+                            </div>
+                            <div class="tip-card anim-up anim-up-d2">
+                                <i class="fas fa-times-circle tip-icon"></i>
+                                <div>
+                                    <strong>Colores estridentes</strong>
+                                    <span>Evita combinaciones agresivas que dificulten la lectura.</span>
+                                </div>
+                            </div>
+                            <div class="tip-card anim-up anim-up-d3">
+                                <i class="fas fa-times-circle tip-icon"></i>
+                                <div>
+                                    <strong>Imágenes pixeladas</strong>
+                                    <span>Siempre usa gráficos HD. Lo borroso resta credibilidad.</span>
+                                </div>
+                            </div>
+                            <div class="tip-card anim-up anim-up-d4">
+                                <i class="fas fa-times-circle tip-icon"></i>
+                                <div>
+                                    <strong>Animaciones excesivas</strong>
+                                    <span>Prioriza la claridad sobre los efectos visuales llamativos.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== SLIDE 9: FOOTER ==================== -->
+            <div class="swiper-slide slide-footer">
+                <div class="slide-inner">
+                    <div class="footer-layout">
+                        <div class="footer-big-quote anim-up">
+                            La ciencia no es solo un conjunto de conocimientos, es una forma de pensar. Comunicarla bien es el primer paso para transformar el mundo.
+                        </div>
+                        <div class="footer-author anim-up anim-up-d1">— Comunicación Científica Digital, 2025</div>
+
+                        <div class="footer-social-row anim-up anim-up-d2">
+                            <a href="#" class="footer-social-btn" aria-label="Email"><i class="fas fa-envelope"></i></a>
+                            <a href="#" class="footer-social-btn" aria-label="ResearchGate"><i class="fab fa-researchgate"></i></a>
+                            <a href="#" class="footer-social-btn" aria-label="ORCID"><i class="fab fa-orcid"></i></a>
+                            <a href="#" class="footer-social-btn" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#" class="footer-social-btn" aria-label="Twitter"><i class="fab fa-x-twitter"></i></a>
+                            <a href="#" class="footer-social-btn" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                        </div>
+
+                        <div class="footer-brand anim-up anim-up-d3">
+                            <i class="fas fa-microscope"></i>
+                            <span>CienciaDigital</span>
+                        </div>
+                        <p class="footer-copy anim-up anim-up-d4">
+                            Metodología de la Investigación &nbsp;·&nbsp; Diseñado con <i class="fas fa-heart"></i> para la comunidad académica &nbsp;·&nbsp; &copy; 2025
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==========================================
+         JAVASCRIPT
+         ========================================== -->
+    <script>
+        // ============================================
+        // INIT SWIPER
+        // ============================================
+        const swiper = new Swiper('#mainSwiper', {
+            direction: 'horizontal',
+            speed: 800,
+            effect: 'slide',
+            keyboard: {
+                enabled: true,
+                onlyInViewport: true,
+            },
+            mousewheel: {
+                sensitivity: 1,
+                thresholdDelta: 30,
+            },
+            on: {
+                init: function () {
+                    updateUI(this.activeIndex);
+                    activateSlide(this.activeIndex);
+                },
+                slideChangeTransitionEnd: function () {
+                    updateUI(this.activeIndex);
+                    activateSlide(this.activeIndex);
+                    // Forzar reinicio de animaciones en la slide activa
+                    restartAnimations(this.activeIndex);
+                }
+            }
+        });
+
+        // ============================================
+        // UPDATE UI (nav dots, counter, arrows, progress)
+        // ============================================
+        const dots = document.querySelectorAll('.slide-nav-dot');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const counterCurrent = document.getElementById('counterCurrent');
+        const counterTotal = document.getElementById('counterTotal');
+        const progressBar = document.getElementById('progressBar');
+        const totalSlides = 9;
+
+        counterTotal.textContent = String(totalSlides).padStart(2, '0');
+
+        function updateUI(index) {
+            // Dots
+            dots.forEach((d, i) => {
+                d.classList.toggle('active', i === index);
+            });
+
+            // Counter
+            counterCurrent.textContent = String(index + 1).padStart(2, '0');
+
+            // Arrows
+            prevBtn.classList.toggle('disabled', index === 0);
+            nextBtn.classList.toggle('disabled', index === totalSlides - 1);
+
+            // Progress
+            const progress = ((index + 1) / totalSlides) * 100;
+            progressBar.style.width = progress + '%';
+        }
+
+        // ============================================
+        // ACTIVATE SLIDE ANIMATIONS
+        // ============================================
+        function activateSlide(index) {
+            document.querySelectorAll('.swiper-slide').forEach((slide, i) => {
+                slide.classList.toggle('slide-active', i === index);
+            });
+        }
+
+        // Reiniciar animaciones eliminando y volviendo a agregar las clases específicas
+        function restartAnimations(index) {
+            const activeSlide = document.querySelector(`.swiper-slide:nth-child(${index + 1})`);
+            if (!activeSlide) return;
+            const animatedElements = activeSlide.querySelectorAll('.anim-up, .anim-left, .anim-scale');
+            animatedElements.forEach(el => {
+                // Guardar las clases de animación
+                const classes = Array.from(el.classList).filter(c => c.startsWith('anim'));
+                if (classes.length === 0) return;
+                // Remover y forzar reflow
+                el.classList.remove(...classes);
+                void el.offsetHeight; // reflow
+                el.classList.add(...classes);
+            });
+        }
+
+        // ============================================
+        // NAV EVENTS
+        // ============================================
+        dots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const idx = parseInt(dot.dataset.index);
+                swiper.slideTo(idx);
+            });
+        });
+
+        prevBtn.addEventListener('click', () => swiper.slidePrev());
+        nextBtn.addEventListener('click', () => swiper.slideNext());
+
+        // Botón "Explorar" del hero
+        document.getElementById('startBtn').addEventListener('click', () => {
+            swiper.slideTo(1);
+        });
+
+        // Índice items
+        document.querySelectorAll('.index-item[data-slide]').forEach(item => {
+            item.addEventListener('click', () => {
+                const idx = parseInt(item.dataset.slide);
+                swiper.slideTo(idx);
+            });
+        });
+
+        // ============================================
+        // ACCORDION (mejorado)
+        // ============================================
+        document.querySelectorAll('.acc-item').forEach(item => {
+            const header = item.querySelector('.acc-header');
+            const body = item.querySelector('.acc-body');
+
+            header.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = item.classList.contains('open');
+
+                // Cerrar todos los demás
+                document.querySelectorAll('.acc-item').forEach(other => {
+                    if (other !== item) {
+                        other.classList.remove('open');
+                        const otherBody = other.querySelector('.acc-body');
+                        if (otherBody) otherBody.style.maxHeight = null;
+                    }
+                });
+
+                if (!isOpen) {
+                    item.classList.add('open');
+                    body.style.maxHeight = body.scrollHeight + 'px';
+                } else {
+                    item.classList.remove('open');
+                    body.style.maxHeight = null;
+                }
+            });
+        });
+
+        // Pequeño fix: altura inicial correcta si algún accordion se abre por defecto (ninguno)
+    </script>
+</body>
+</html>
